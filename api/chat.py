@@ -4,12 +4,8 @@ import google.generativeai as genai
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-app = Flask(__name__)
-CORS(app)
-
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
-@app.route('/', methods=['POST', 'GET'])
 def chat():
     """Chat endpoint handler"""
     print("💬 /api/chat endpoint called")
@@ -48,7 +44,20 @@ def chat():
         return jsonify({"error": str(e)}), 500
 
 # Handler for Vercel
-def handler(event, context):
+def handler(request):
     """Handler for Vercel serverless deployment"""
+    app = Flask(__name__)
+    CORS(app)
+    
     with app.app_context():
-        return app.full_dispatch_request()
+        with app.test_request_context(
+            path=request.url,
+            method=request.method,
+            headers=dict(request.headers),
+            data=request.get_data(),
+            query_string=request.query_string
+        ):
+            try:
+                return chat()
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
