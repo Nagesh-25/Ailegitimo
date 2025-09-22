@@ -11,9 +11,6 @@ import docx
 import datetime
 import uuid
 
-app = Flask(__name__)
-CORS(app)
-
 # --- Environment Variables (Set these in Vercel Dashboard) ---
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID") 
@@ -140,7 +137,6 @@ def log_to_bigquery(metadata):
         print(f"⚠️ BigQuery logging failed: {e}")
         return False
 
-@app.route('/', methods=['POST', 'GET'])
 def analyze():
     """Main analyze endpoint handler"""
     print("🚀 /api/analyze endpoint called")
@@ -224,8 +220,22 @@ When generating the '### Key Clauses & Legal Connections' section, you MUST refe
         print(f"❌ Error in /api/analyze: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-# This is the handler that Vercel will call
-def handler(event, context):
+# This is the main handler function that Vercel will call
+def handler(request):
     """Handler for Vercel serverless deployment"""
+    app = Flask(__name__)
+    CORS(app)
+    
     with app.app_context():
-        return app.full_dispatch_request()
+        # Import the Flask request object into the function
+        with app.test_request_context(
+            path=request.url,
+            method=request.method,
+            headers=dict(request.headers),
+            data=request.get_data(),
+            query_string=request.query_string
+        ):
+            try:
+                return analyze()
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
