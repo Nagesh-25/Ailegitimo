@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-
+ 
 def chat():
     """Chat endpoint handler"""
     print("💬 /api/chat endpoint called")
