@@ -1,0 +1,8 @@
+flask
+flask-cors
+google-generativeai
+google-cloud-vision
+google-cloud-storage
+google-cloud-bigquery
+PyPDF2
+python-docx
