@@ -299,79 +299,133 @@
         const statusBox = document.getElementById('status-box');
         const statusTitle = document.getElementById('status-title');
         const statusMessage = document.getElementById('status-message');
-
+        
         let chatHistoryArray = [];
-        const FLASK_BACKEND_URL = 'https://legal-ai-backend-332060024791.us-central1.run.app'; // URL of your local Flask server
-
+        const FLASK_BACKEND_URL = 'https://legal-ai-backend-332060024791.us-central1.run.app';
+        
         // --- Event Listeners ---
         analyzeBtn.addEventListener('click', handleAnalysis);
         sendBtn.addEventListener('click', handleChatMessage);
         chatInput.addEventListener('keyup', (event) => {
             if (event.key === 'Enter') handleChatMessage();
         });
-
+        
         // --- Main Functions ---
-
+        
         async function handleAnalysis() {
+            console.log('🚀 Starting analysis...');
+            
             const file = fileUpload.files[0];
             if (!file) {
                 showStatus("Input Error", "Please select a file to analyze.", 'error');
                 return;
             }
-
+        
+            console.log('📄 File selected:', file.name, 'Type:', file.type, 'Size:', file.size);
+        
             hideStatus();
             setLoading(true, analyzeBtn, analyzeBtnText, analyzeLoader);
-
+        
             analysisOutput.classList.add('hidden');
             chatSection.classList.add('hidden');
             chatHistory.innerHTML = '';
-
+        
             const formData = new FormData();
             formData.append('file', file);
             formData.append('language', languageSelect.value);
-
+        
             try {
                 showStatus("Processing...", "Uploading file and running analysis. This may take a moment.", "info");
+                
+                console.log('📡 Sending request to:', `${FLASK_BACKEND_URL}/analyze`);
+                
                 const response = await fetch(`${FLASK_BACKEND_URL}/analyze`, {
                     method: 'POST',
                     body: formData
                 });
-
-                const result = await response.json();
-
+        
+                console.log('📥 Response status:', response.status);
+                
+                // Handle different response types
+                let result;
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    result = await response.json();
+                } else {
+                    const textResponse = await response.text();
+                    console.error('❌ Non-JSON response:', textResponse);
+                    throw new Error('Server returned invalid response format');
+                }
+        
+                console.log('📊 Response data:', result);
+        
                 if (!response.ok) {
                     throw new Error(result.error || `HTTP error! Status: ${response.status}`);
                 }
-
-                analysisContent.innerHTML = formatResponse(result.analysis);
+        
+                // Extract analysis text with multiple fallback options
+                let analysisText = '';
+                
+                if (result.analysis && typeof result.analysis === 'string') {
+                    analysisText = result.analysis;
+                } else if (result.summary && typeof result.summary === 'string') {
+                    analysisText = result.summary;
+                } else if (result.message && typeof result.message === 'string') {
+                    analysisText = result.message;
+                } else {
+                    analysisText = 'Analysis completed successfully, but no content was returned.';
+                }
+        
+                console.log('✅ Analysis text extracted:', analysisText.length, 'characters');
+        
+                // Display the analysis with safe formatting
+                analysisContent.innerHTML = formatResponse(analysisText);
                 analysisOutput.classList.remove('hidden');
                 chatSection.classList.remove('hidden');
                 hideStatus();
-
+        
+                // Initialize chat history safely
+                const documentText = result.documentText || 'Document uploaded for analysis';
                 chatHistoryArray = [
-                    { role: "user", parts: [{ text: `Here is the document context: ${result.documentText}` }] },
-                    { role: "model", parts: [{ text: result.analysis }] }
+                    { role: "user", parts: [{ text: `Here is the document context: ${documentText}` }] },
+                    { role: "model", parts: [{ text: analysisText }] }
                 ];
+                
                 addMessageToHistory("🤖 AI Assistant", "Hello! I've analyzed your document. How can I help you further?", 'ai');
-
+        
             } catch (error) {
-                console.error("Analysis Error:", error);
-                showStatus("Analysis Failed", error.message, 'error');
+                console.error("❌ Analysis Error:", error);
+                
+                let errorMessage = 'An unexpected error occurred.';
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+                } else if (error.message.includes('404')) {
+                    errorMessage = 'Analysis service not found. Please try again later.';
+                } else if (error.message.includes('500')) {
+                    errorMessage = 'Server error occurred. Please try again or contact support.';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                showStatus("Analysis Failed", errorMessage, 'error');
             } finally {
                 setLoading(false, analyzeBtn, analyzeBtnText, analyzeLoader);
             }
         }
-
+        
         async function handleChatMessage() {
             const userQuestion = chatInput.value.trim();
             if (!userQuestion) return;
-
+        
+            console.log('💬 Sending chat message:', userQuestion);
+        
             addMessageToHistory("👤 You", userQuestion, 'user');
             chatInput.value = '';
             setLoading(true, sendBtn);
-
+        
             chatHistoryArray.push({ role: "user", parts: [{ text: userQuestion }] });
-
+        
             try {
                 const response = await fetch(`${FLASK_BACKEND_URL}/chat`, {
                     method: 'POST',
@@ -381,68 +435,140 @@
                         language: languageSelect.value
                     })
                 });
-
-                const result = await response.json();
+        
+                let result;
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    result = await response.json();
+                } else {
+                    throw new Error('Server returned invalid response format');
+                }
+        
                 if (!response.ok) {
                     throw new Error(result.error || 'Failed to get chat response.');
                 }
-
-                const aiResponse = result.response;
+        
+                const aiResponse = result.response || 'I apologize, but I could not generate a response.';
                 chatHistoryArray.push({ role: "model", parts: [{ text: aiResponse }] });
                 addMessageToHistory("🤖 AI Assistant", aiResponse, 'ai');
-
+        
             } catch (error) {
-                console.error("Chat Error:", error);
-                addMessageToHistory("🤖 AI Assistant", `Sorry, I encountered an error: ${error.message}`, 'ai-error');
+                console.error("❌ Chat Error:", error);
+                const errorMsg = error.message || 'Unable to get response from AI assistant.';
+                addMessageToHistory("🤖 AI Assistant", `Sorry, I encountered an error: ${errorMsg}`, 'ai-error');
             } finally {
                 setLoading(false, sendBtn);
             }
         }
-
+        
         // --- UI Helper Functions ---
+        
         function formatResponse(text) {
-            return text
-                .replace(/### (.*?)\n/g, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>')
-                .replace(/\n/g, '<br>');
-        }
-
-        function addMessageToHistory(sender, message, type) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('p-3', 'rounded-lg', 'max-w-xl');
-            let contentDiv = document.createElement('div');
-            contentDiv.innerHTML = `<strong>${sender}</strong><br>${formatResponse(message)}`;
-
-            if (type === 'user') {
-                messageDiv.classList.add('bg-blue-100', 'text-blue-900', 'self-end', 'ml-auto');
-            } else {
-                messageDiv.classList.add('bg-gray-200', 'text-gray-900', 'self-start', 'mr-auto');
-                if (type === 'ai-error') {
-                    messageDiv.classList.replace('bg-gray-200', 'bg-red-100');
-                    messageDiv.classList.replace('text-gray-900', 'text-red-900');
-                }
+            // Handle null, undefined, or non-string values
+            if (!text || typeof text !== 'string') {
+                console.warn('⚠️ formatResponse received invalid input:', typeof text, text);
+                return '<p class="text-gray-500 italic">No content available</p>';
             }
-            messageDiv.appendChild(contentDiv);
-            chatHistory.appendChild(messageDiv);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
+            
+            // Ensure we have a string and it's not empty
+            const cleanText = text.toString().trim();
+            if (cleanText.length === 0) {
+                return '<p class="text-gray-500 italic">Empty response</p>';
+            }
+            
+            try {
+                return cleanText
+                    .replace(/### (.*?)\n/g, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>')
+                    .replace(/## (.*?)\n/g, '<h2 class="text-xl font-semibold mt-6 mb-3">$1</h2>')
+                    .replace(/# (.*?)\n/g, '<h1 class="text-2xl font-bold mt-8 mb-4">$1</h1>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/\n\n/g, '</p><p class="mt-2">')
+                    .replace(/\n/g, '<br>');
+            } catch (error) {
+                console.error('❌ Error in formatResponse:', error);
+                return `<p>${cleanText}</p>`;
+            }
         }
-
-        function setLoading(isLoading, button, textElement, loaderElement) {
-            button.disabled = isLoading;
-            if (textElement) textElement.style.display = isLoading ? 'none' : 'inline';
-            if (loaderElement) loaderElement.style.display = isLoading ? 'block' : 'none';
+        
+        function addMessageToHistory(sender, message, type) {
+            try {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('p-3', 'rounded-lg', 'max-w-xl');
+                
+                const contentDiv = document.createElement('div');
+                const formattedMessage = formatResponse(message);
+                contentDiv.innerHTML = `<strong>${sender}</strong><br>${formattedMessage}`;
+        
+                if (type === 'user') {
+                    messageDiv.classList.add('bg-blue-100', 'text-blue-900', 'self-end', 'ml-auto');
+                } else {
+                    messageDiv.classList.add('bg-gray-200', 'text-gray-900', 'self-start', 'mr-auto');
+                    if (type === 'ai-error') {
+                        messageDiv.classList.replace('bg-gray-200', 'bg-red-100');
+                        messageDiv.classList.replace('text-gray-900', 'text-red-900');
+                    }
+                }
+                
+                messageDiv.appendChild(contentDiv);
+                chatHistory.appendChild(messageDiv);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            } catch (error) {
+                console.error('❌ Error adding message to history:', error);
+            }
         }
-
+        
+        function setLoading(isLoading, button, textElement = null, loaderElement = null) {
+            try {
+                button.disabled = isLoading;
+                if (textElement) {
+                    textElement.style.display = isLoading ? 'none' : 'inline';
+                }
+                if (loaderElement) {
+                    loaderElement.style.display = isLoading ? 'block' : 'none';
+                }
+                
+                // Update button text if it's the send button
+                if (button === sendBtn) {
+                    button.textContent = isLoading ? 'Sending...' : 'Send';
+                }
+            } catch (error) {
+                console.error('❌ Error in setLoading:', error);
+            }
+        }
+        
         function showStatus(title, message, type) {
-            statusTitle.textContent = title;
-            statusMessage.textContent = message;
-            statusBox.className = 'px-4 py-3 rounded-lg relative'; // Reset classes
-            if (type === 'error') statusBox.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-700');
-            else statusBox.classList.add('bg-blue-100', 'border', 'border-blue-400', 'text-blue-700');
-            statusBox.classList.remove('hidden');
+            try {
+                statusTitle.textContent = title || 'Status';
+                statusMessage.textContent = message || '';
+                statusBox.className = 'px-4 py-3 rounded-lg relative'; // Reset classes
+                
+                if (type === 'error') {
+                    statusBox.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-700');
+                } else {
+                    statusBox.classList.add('bg-blue-100', 'border', 'border-blue-400', 'text-blue-700');
+                }
+                
+                statusBox.classList.remove('hidden');
+                
+                // Auto-hide info messages after 5 seconds
+                if (type !== 'error') {
+                    setTimeout(() => {
+                        hideStatus();
+                    }, 5000);
+                }
+            } catch (error) {
+                console.error('❌ Error in showStatus:', error);
+            }
         }
-
+        
         function hideStatus() {
-            statusBox.classList.add('hidden');
+            try {
+                statusBox.classList.add('hidden');
+            } catch (error) {
+                console.error('❌ Error in hideStatus:', error);
+            }
         }
     </script>
 </body>
