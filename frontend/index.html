@@ -35,21 +35,25 @@
             }
         }
 
-        #chat-history::-webkit-scrollbar {
+        #chat-history::-webkit-scrollbar,
+        #general-chat-history::-webkit-scrollbar {
             width: 8px;
         }
 
-        #chat-history::-webkit-scrollbar-track {
+        #chat-history::-webkit-scrollbar-track,
+        #general-chat-history::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 10px;
         }
 
-        #chat-history::-webkit-scrollbar-thumb {
+        #chat-history::-webkit-scrollbar-thumb,
+        #general-chat-history::-webkit-scrollbar-thumb {
             background: #888;
             border-radius: 10px;
         }
 
-        #chat-history::-webkit-scrollbar-thumb:hover {
+        #chat-history::-webkit-scrollbar-thumb:hover,
+        #general-chat-history::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
     </style>
@@ -67,6 +71,8 @@
                     <a href="#" class="text-gray-600 hover:text-blue-600 transition duration-150 ease-in-out">About</a>
                     <a href="#features"
                         class="text-gray-600 hover:text-blue-600 transition duration-150 ease-in-out">Feature</a>
+                    <a href="#general-chat"
+                        class="text-gray-600 hover:text-blue-600 transition duration-150 ease-in-out">Legal Chat</a>
                     <span class="text-gray-400 cursor-not-allowed">Pricing</span>
                     <div class="text-gray-400 cursor-not-allowed" title="Profile">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
@@ -82,9 +88,8 @@
 
     <div class="container mx-auto p-4 md:p-8 max-w-4xl">
         <header class="text-center mb-8">
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-900">AI Document Simplifier</h1>
-            <p class="text-gray-600 mt-2">Upload a document for analysis, GCS upload, BigQuery logging, and interactive
-                chat.</p>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900">AI Legal Assistant</h1>
+            <p class="text-gray-600 mt-2">Upload a document for analysis, or chat directly about legal terms.</p>
         </header>
 
         <main class="bg-white rounded-2xl shadow-xl p-6 md:p-8 space-y-8 mb-8">
@@ -105,8 +110,11 @@
                         <select id="language-select"
                             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 sm:text-sm rounded-lg bg-gray-50">
                             <option value="English">English</option>
-                            <option value="Hindi">Hindi (हिन्दी)</option>
                             <option value="Kannada">Kannada (ಕನ್ನಡ)</option>
+                            <option value="Hindi">Hindi (हिन्दी)</option>
+                            <option value="Tamil">Tamil (தமிழ்)</option>
+                            <option value="Telugu">Telugu (తెలుగు)</option>
+                            <option value="Malayalam">Malayalam (മലയാളം)</option>
                         </select>
                     </div>
                 </div>
@@ -125,7 +133,7 @@
                 <div id="analysis-content" class="prose max-w-none text-gray-700 bg-gray-50 p-4 rounded-lg"></div>
             </div>
 
-            <!-- Chat Section -->
+            <!-- Chat Section (Document-based) -->
             <div id="chat-section" class="hidden">
                 <h2 class="text-xl font-semibold mb-4 border-b pb-2">Ask Follow-up Questions</h2>
                 <div class="border border-gray-200 rounded-lg overflow-hidden">
@@ -145,6 +153,42 @@
                 <span class="block sm:inline" id="status-message"></span>
             </div>
         </main>
+
+        <!-- NEW: General Legal Chat Section -->
+        <section id="general-chat" class="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-8">
+            <div class="text-center mb-6">
+                <h2 class="text-3xl font-bold text-gray-900">Legal Terms Assistant</h2>
+                <p class="text-gray-600 mt-2">Ask questions about legal terminology and concepts without uploading a document.</p>
+            </div>
+            
+            <div class="mb-4">
+                <label for="general-language-select" class="block text-sm font-medium text-gray-700 mb-2">Select Language</label>
+                <select id="general-language-select"
+                    class="block w-full md:w-64 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 sm:text-sm rounded-lg bg-gray-50">
+                    <option value="English">English</option>
+                    <option value="Kannada">Kannada (ಕನ್ನಡ)</option>
+                    <option value="Hindi">Hindi (हिन्दी)</option>
+                    <option value="Tamil">Tamil (தமிழ்)</option>
+                    <option value="Telugu">Telugu (తెలుగు)</option>
+                    <option value="Malayalam">Malayalam (മലയാളം)</option>
+                </select>
+            </div>
+
+            <div class="border border-gray-200 rounded-lg overflow-hidden">
+                <div id="general-chat-history" class="h-96 overflow-y-auto p-4 space-y-4 bg-gray-50">
+                    <div class="p-3 rounded-lg max-w-xl bg-blue-100 text-blue-900 self-start mr-auto">
+                        <strong>AI Legal Assistant</strong><br>
+                        Hello! I'm here to help you understand legal terminology and concepts. Feel free to ask me about any legal terms, definitions, or basic legal questions you have.
+                    </div>
+                </div>
+                <div class="p-4 border-t border-gray-200 bg-white flex items-center">
+                    <input type="text" id="general-chat-input" placeholder="Ask about legal terms (e.g., 'What is a contract?')..."
+                        class="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button id="general-send-btn"
+                        class="ml-4 bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition duration-300 ease-in-out disabled:bg-gray-400">Send</button>
+                </div>
+            </div>
+        </section>
 
         <!-- Features Section -->
         <section id="features" class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
@@ -300,8 +344,15 @@
         const statusTitle = document.getElementById('status-title');
         const statusMessage = document.getElementById('status-message');
         
+        // NEW: General chat elements
+        const generalChatHistory = document.getElementById('general-chat-history');
+        const generalChatInput = document.getElementById('general-chat-input');
+        const generalSendBtn = document.getElementById('general-send-btn');
+        const generalLanguageSelect = document.getElementById('general-language-select');
+        
         let chatHistoryArray = [];
-        const FLASK_BACKEND_URL = 'https://legal-ai-backend-332060024791.us-central1.run.app';
+        let generalChatHistoryArray = [];
+        const FLASK_BACKEND_URL = 'https://legal-ai-backend2-332060024791.us-central1.run.app';
         
         // --- Event Listeners ---
         analyzeBtn.addEventListener('click', handleAnalysis);
@@ -310,10 +361,16 @@
             if (event.key === 'Enter') handleChatMessage();
         });
         
+        // NEW: General chat event listeners
+        generalSendBtn.addEventListener('click', handleGeneralChat);
+        generalChatInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') handleGeneralChat();
+        });
+        
         // --- Main Functions ---
         
         async function handleAnalysis() {
-            console.log('🚀 Starting analysis...');
+            console.log('Starting analysis...');
             
             const file = fileUpload.files[0];
             if (!file) {
@@ -321,7 +378,7 @@
                 return;
             }
         
-            console.log('📄 File selected:', file.name, 'Type:', file.type, 'Size:', file.size);
+            console.log('File selected:', file.name, 'Type:', file.type, 'Size:', file.size);
         
             hideStatus();
             setLoading(true, analyzeBtn, analyzeBtnText, analyzeLoader);
@@ -337,16 +394,15 @@
             try {
                 showStatus("Processing...", "Uploading file and running analysis. This may take a moment.", "info");
                 
-                console.log('📡 Sending request to:', `${FLASK_BACKEND_URL}/analyze`);
+                console.log('Sending request to:', `${FLASK_BACKEND_URL}/analyze`);
                 
                 const response = await fetch(`${FLASK_BACKEND_URL}/analyze`, {
                     method: 'POST',
                     body: formData
                 });
         
-                console.log('📥 Response status:', response.status);
+                console.log('Response status:', response.status);
                 
-                // Handle different response types
                 let result;
                 const contentType = response.headers.get('content-type');
                 
@@ -354,17 +410,16 @@
                     result = await response.json();
                 } else {
                     const textResponse = await response.text();
-                    console.error('❌ Non-JSON response:', textResponse);
+                    console.error('Non-JSON response:', textResponse);
                     throw new Error('Server returned invalid response format');
                 }
         
-                console.log('📊 Response data:', result);
+                console.log('Response data:', result);
         
                 if (!response.ok) {
                     throw new Error(result.error || `HTTP error! Status: ${response.status}`);
                 }
         
-                // Extract analysis text with multiple fallback options
                 let analysisText = '';
                 
                 if (result.analysis && typeof result.analysis === 'string') {
@@ -377,25 +432,23 @@
                     analysisText = 'Analysis completed successfully, but no content was returned.';
                 }
         
-                console.log('✅ Analysis text extracted:', analysisText.length, 'characters');
+                console.log('Analysis text extracted:', analysisText.length, 'characters');
         
-                // Display the analysis with safe formatting
                 analysisContent.innerHTML = formatResponse(analysisText);
                 analysisOutput.classList.remove('hidden');
                 chatSection.classList.remove('hidden');
                 hideStatus();
         
-                // Initialize chat history safely
                 const documentText = result.documentText || 'Document uploaded for analysis';
                 chatHistoryArray = [
                     { role: "user", parts: [{ text: `Here is the document context: ${documentText}` }] },
                     { role: "model", parts: [{ text: analysisText }] }
                 ];
                 
-                addMessageToHistory("🤖 AI Assistant", "Hello! I've analyzed your document. How can I help you further?", 'ai');
+                addMessageToHistory("AI Assistant", "Hello! I've analyzed your document. How can I help you further?", 'ai');
         
             } catch (error) {
-                console.error("❌ Analysis Error:", error);
+                console.error("Analysis Error:", error);
                 
                 let errorMessage = 'An unexpected error occurred.';
                 if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -418,9 +471,9 @@
             const userQuestion = chatInput.value.trim();
             if (!userQuestion) return;
         
-            console.log('💬 Sending chat message:', userQuestion);
+            console.log('Sending chat message:', userQuestion);
         
-            addMessageToHistory("👤 You", userQuestion, 'user');
+            addMessageToHistory("You", userQuestion, 'user');
             chatInput.value = '';
             setLoading(true, sendBtn);
         
@@ -451,27 +504,80 @@
         
                 const aiResponse = result.response || 'I apologize, but I could not generate a response.';
                 chatHistoryArray.push({ role: "model", parts: [{ text: aiResponse }] });
-                addMessageToHistory("🤖 AI Assistant", aiResponse, 'ai');
+                addMessageToHistory("AI Assistant", aiResponse, 'ai');
         
             } catch (error) {
-                console.error("❌ Chat Error:", error);
+                console.error("Chat Error:", error);
                 const errorMsg = error.message || 'Unable to get response from AI assistant.';
-                addMessageToHistory("🤖 AI Assistant", `Sorry, I encountered an error: ${errorMsg}`, 'ai-error');
+                addMessageToHistory("AI Assistant", `Sorry, I encountered an error: ${errorMsg}`, 'ai-error');
             } finally {
                 setLoading(false, sendBtn);
+            }
+        }
+        
+        // NEW: Handle general legal chat
+        async function handleGeneralChat() {
+            const userQuestion = generalChatInput.value.trim();
+            if (!userQuestion) return;
+        
+            console.log('Sending general chat message:', userQuestion);
+        
+            addMessageToGeneralHistory("You", userQuestion, 'user');
+            generalChatInput.value = '';
+            setLoading(true, generalSendBtn);
+        
+            generalChatHistoryArray.push({ 
+                role: "user", 
+                parts: [{ text: userQuestion }] 
+            });
+        
+            try {
+                const response = await fetch(`${FLASK_BACKEND_URL}/general-chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        history: generalChatHistoryArray,
+                        language: generalLanguageSelect.value
+                    })
+                });
+        
+                let result;
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    result = await response.json();
+                } else {
+                    throw new Error('Server returned invalid response format');
+                }
+        
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to get chat response.');
+                }
+        
+                const aiResponse = result.response || 'I apologize, but I could not generate a response.';
+                generalChatHistoryArray.push({ 
+                    role: "model", 
+                    parts: [{ text: aiResponse }] 
+                });
+                addMessageToGeneralHistory("AI Legal Assistant", aiResponse, 'ai');
+        
+            } catch (error) {
+                console.error("General Chat Error:", error);
+                const errorMsg = error.message || 'Unable to get response from AI assistant.';
+                addMessageToGeneralHistory("AI Legal Assistant", `Sorry, I encountered an error: ${errorMsg}`, 'ai-error');
+            } finally {
+                setLoading(false, generalSendBtn);
             }
         }
         
         // --- UI Helper Functions ---
         
         function formatResponse(text) {
-            // Handle null, undefined, or non-string values
             if (!text || typeof text !== 'string') {
-                console.warn('⚠️ formatResponse received invalid input:', typeof text, text);
+                console.warn('formatResponse received invalid input:', typeof text, text);
                 return '<p class="text-gray-500 italic">No content available</p>';
             }
             
-            // Ensure we have a string and it's not empty
             const cleanText = text.toString().trim();
             if (cleanText.length === 0) {
                 return '<p class="text-gray-500 italic">Empty response</p>';
@@ -487,7 +593,7 @@
                     .replace(/\n\n/g, '</p><p class="mt-2">')
                     .replace(/\n/g, '<br>');
             } catch (error) {
-                console.error('❌ Error in formatResponse:', error);
+                console.error('Error in formatResponse:', error);
                 return `<p>${cleanText}</p>`;
             }
         }
@@ -515,7 +621,35 @@
                 chatHistory.appendChild(messageDiv);
                 chatHistory.scrollTop = chatHistory.scrollHeight;
             } catch (error) {
-                console.error('❌ Error adding message to history:', error);
+                console.error('Error adding message to history:', error);
+            }
+        }
+        
+        // NEW: Add message to general chat history
+        function addMessageToGeneralHistory(sender, message, type) {
+            try {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('p-3', 'rounded-lg', 'max-w-xl');
+                
+                const contentDiv = document.createElement('div');
+                const formattedMessage = formatResponse(message);
+                contentDiv.innerHTML = `<strong>${sender}</strong><br>${formattedMessage}`;
+        
+                if (type === 'user') {
+                    messageDiv.classList.add('bg-green-100', 'text-green-900', 'self-end', 'ml-auto');
+                } else {
+                    messageDiv.classList.add('bg-blue-100', 'text-blue-900', 'self-start', 'mr-auto');
+                    if (type === 'ai-error') {
+                        messageDiv.classList.replace('bg-blue-100', 'bg-red-100');
+                        messageDiv.classList.replace('text-blue-900', 'text-red-900');
+                    }
+                }
+                
+                messageDiv.appendChild(contentDiv);
+                generalChatHistory.appendChild(messageDiv);
+                generalChatHistory.scrollTop = generalChatHistory.scrollHeight;
+            } catch (error) {
+                console.error('Error adding message to general history:', error);
             }
         }
         
@@ -529,12 +663,13 @@
                     loaderElement.style.display = isLoading ? 'block' : 'none';
                 }
                 
-                // Update button text if it's the send button
                 if (button === sendBtn) {
+                    button.textContent = isLoading ? 'Sending...' : 'Send';
+                } else if (button === generalSendBtn) {
                     button.textContent = isLoading ? 'Sending...' : 'Send';
                 }
             } catch (error) {
-                console.error('❌ Error in setLoading:', error);
+                console.error('Error in setLoading:', error);
             }
         }
         
@@ -542,7 +677,7 @@
             try {
                 statusTitle.textContent = title || 'Status';
                 statusMessage.textContent = message || '';
-                statusBox.className = 'px-4 py-3 rounded-lg relative'; // Reset classes
+                statusBox.className = 'px-4 py-3 rounded-lg relative';
                 
                 if (type === 'error') {
                     statusBox.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-700');
@@ -552,14 +687,13 @@
                 
                 statusBox.classList.remove('hidden');
                 
-                // Auto-hide info messages after 5 seconds
                 if (type !== 'error') {
                     setTimeout(() => {
                         hideStatus();
                     }, 5000);
                 }
             } catch (error) {
-                console.error('❌ Error in showStatus:', error);
+                console.error('Error in showStatus:', error);
             }
         }
         
@@ -567,7 +701,7 @@
             try {
                 statusBox.classList.add('hidden');
             } catch (error) {
-                console.error('❌ Error in hideStatus:', error);
+                console.error('Error in hideStatus:', error);
             }
         }
     </script>
